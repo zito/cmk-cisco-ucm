@@ -110,6 +110,14 @@ class CUCMCCSUnauthorized(RuntimeError):
     """ 401 Unauthorized """
     pass
 
+class CUCMCCSForbidden(RuntimeError):
+    """ 403 Forbidden """
+    pass
+
+class CUCMCCSUndecoded(RuntimeError):
+    """ XXX Undecoded """
+    pass
+
 
 class CUCMCCSSession(requests.Session):
     """Encapsulates the Sessions with the CUC system"""
@@ -156,9 +164,13 @@ class CUCMCCSConnection:
     def query_server(self, method, **kwargs):
         payload = getattr(self._soap_templates, method) % kwargs
         response = self._session.postsoap(payload)
+        if response.status_code == 200:
+            return response.text
         if response.status_code == 401:
             raise CUCMCCSUnauthorized("401 Unauthorized")
-        return response.text
+        if response.status_code == 403:
+            raise CUCMCCSForbidden("403 Forbidden")
+        raise CUCMCCSUndecoded(f"{response.status_code} Undecoded status code")
 
 
 #.
