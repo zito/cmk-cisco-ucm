@@ -106,20 +106,20 @@ def parse_arguments(argv):
 #   '----------------------------------------------------------------------'
 
 
-class CUCMCCSUnauthorized(RuntimeError):
+class CUCMUnauthorized(RuntimeError):
     """ 401 Unauthorized """
     pass
 
-class CUCMCCSForbidden(RuntimeError):
+class CUCMForbidden(RuntimeError):
     """ 403 Forbidden """
     pass
 
-class CUCMCCSUndecoded(RuntimeError):
+class CUCMUndecoded(RuntimeError):
     """ XXX Undecoded """
     pass
 
 
-class CUCMCCSSession(requests.Session):
+class CUCMSession(requests.Session):
     """Encapsulates the Sessions with the CUC system"""
     ENVELOPE = ('<SOAP-ENV:Envelope'
                 ' xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"'
@@ -130,7 +130,7 @@ class CUCMCCSSession(requests.Session):
                 '</SOAP-ENV:Envelope>')
 
     def __init__(self, address, port, no_cert_check=False, user=None, secret=None):
-        super(CUCMCCSSession, self).__init__()
+        super(CUCMSession, self).__init__()
         if no_cert_check:
             # Watch out: we must provide the verify keyword to every individual request call!
             # Else it will be overwritten by the REQUESTS_CA_BUNDLE env variable
@@ -141,24 +141,24 @@ class CUCMCCSSession(requests.Session):
         self.headers.update({
             "Content-Type": 'text/xml; charset="utf-8"',
             "SOAPAction": "urn:vim25/5.0",
-            "User-Agent": "Checkmk special agent cisco uc ccs",
+            "User-Agent": "Checkmk special agent Cisco UCM",
         })
         if user is not None and secret is not None:
             self.auth = HTTPBasicAuth(user, secret)
 
     def postsoap(self, request):
-        soapdata = CUCMCCSSession.ENVELOPE % request
+        soapdata = CUCMSession.ENVELOPE % request
         # Watch out: we must provide the verify keyword to every individual request call!
         # Else it will be overwritten by the REQUESTS_CA_BUNDLE env variable
-        return super(CUCMCCSSession, self).post(self._post_url, data=soapdata, verify=self.verify)
+        return super(CUCMSession, self).post(self._post_url, data=soapdata, verify=self.verify)
 
 
-class CUCMCCSConnection:
+class CUCMConnection:
 
     def __init__(self, address, port, opt):
-        super(CUCMCCSConnection, self).__init__()
+        super(CUCMConnection, self).__init__()
 
-        self._session = CUCMCCSSession(address, port, opt.no_cert_check, opt.user, opt.secret)
+        self._session = CUCMSession(address, port, opt.no_cert_check, opt.user, opt.secret)
         self._soap_templates = SoapTemplates()
 
     def query_server(self, method, **kwargs):
@@ -167,10 +167,10 @@ class CUCMCCSConnection:
         if response.status_code == 200:
             return response.text
         if response.status_code == 401:
-            raise CUCMCCSUnauthorized("401 Unauthorized")
+            raise CUCMUnauthorized("401 Unauthorized")
         if response.status_code == 403:
-            raise CUCMCCSForbidden("403 Forbidden")
-        raise CUCMCCSUndecoded(f"{response.status_code} Undecoded status code")
+            raise CUCMForbidden("403 Forbidden")
+        raise CUCMUndecoded(f"{response.status_code} Undecoded status code")
 
 
 #.
@@ -226,7 +226,7 @@ def main(argv=None):
 
     socket.setdefaulttimeout(opt.timeout)
     try:
-        con = CUCMCCSConnection(opt.host_address, opt.port, opt)
+        con = CUCMConnection(opt.host_address, opt.port, opt)
         output = fetch_data(con, opt)
 
     except Exception as exc:
