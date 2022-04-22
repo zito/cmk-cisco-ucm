@@ -142,7 +142,7 @@ rulespec_registry.register(
     HostRulespec(
         group=RulespecGroupCheckParametersDiscovery,
         match_type="all",
-        name="inventory_services_rules",
+        name="inventory_cisco_services_ucm_rules",
         valuespec=_valuespec_inventory_services_rules,
     ))
 

@@ -156,7 +156,7 @@ register.check_plugin(
     name="cisco_ucm_services",
     service_name="Service %s",
     discovery_ruleset_type=register.RuleSetType.ALL,
-    discovery_ruleset_name="inventory_services_rules",
+    discovery_ruleset_name="inventory_cisco_ucm_services_rules",
     discovery_function=discovery_cisco_ucm_services,
     discovery_default_parameters=CISCO_UCM_SERVICES_DISCOVERY_DEFAULT_PARAMETERS,
     check_ruleset_name="cisco_ucm_services",
