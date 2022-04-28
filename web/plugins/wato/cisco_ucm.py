@@ -7,19 +7,14 @@
 
 import cmk.gui.watolib as watolib
 from cmk.gui.i18n import _
-from cmk.gui.plugins.wato import (
-    HostRulespec,
-    IndividualOrStoredPassword,
-    rulespec_registry,
-)
 from cmk.gui.plugins.wato.datasource_programs import RulespecGroupDatasourceProgramsApps
 from cmk.gui.plugins.wato import (
     CheckParameterRulespecWithItem,
+    IndividualOrStoredPassword,
     rulespec_registry,
     RulespecGroupCheckParametersApplications,
     RulespecGroupCheckParametersDiscovery,
     HostRulespec,
-    UserIconOrAction,
 )
 from cmk.gui.valuespec import (
     Alternative,
