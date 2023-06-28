@@ -8,6 +8,7 @@
 import cmk.gui.watolib as watolib
 from cmk.gui.i18n import _
 from cmk.gui.plugins.wato.datasource_programs import RulespecGroupDatasourceProgramsApps
+from cmk.gui.watolib.rulespecs import Rulespec
 from cmk.gui.plugins.wato import (
     CheckParameterRulespecWithItem,
     IndividualOrStoredPassword,
@@ -30,9 +31,11 @@ from cmk.gui.valuespec import (
 )
 
 
+
+
 def _factory_default_special_agents_cisco_ucm():
     # No default, do not use setting if no rule matches
-    return watolib.Rulespec.FACTORY_DEFAULT_UNUSED
+    return Rulespec.FACTORY_DEFAULT_UNUSED
 
 
 def _valuespec_special_agents_cisco_ucm():
