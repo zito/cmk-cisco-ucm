@@ -169,9 +169,12 @@ def _parameter_valuespec_services():
                            choices=[(None, _("ignore the state")), ("started", _("started")),
                                     ("stopped", _("stopped"))],
                        ),
-                       MonitoringState(title=_("Resulting state"),),
+                       MonitoringState(
+                           title=_("Resulting state"),
+                           default_value=0,
+                       ),
                    ],
-                   default_value=("started", 0)),
+             ),
              title=_("Services states"),
              help=_("You can specify a separate monitoring state for each possible "
                     "combination of service state. If you do not use "

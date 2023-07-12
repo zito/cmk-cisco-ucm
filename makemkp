@@ -64,7 +64,7 @@ class fake_file:
 #-----------------------------------------------------------------------
 
 pacname = 'cmk-cisco-ucm'
-version = '1.6'
+version = '1.7'
 
 filelists = {}
 package = {
