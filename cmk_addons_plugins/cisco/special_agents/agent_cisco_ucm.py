@@ -62,12 +62,11 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser(description=__doc__)
 
     # flags
-    parser.add_argument("--debug",
-                        action="store_true",
-                        help="""Debug mode: let Python exceptions come through""")
-    parser.add_argument("--no-cert-check",
-                        action="store_true",
-                        help="""Disables the checking of the servers ssl certificate""")
+    parser.add_argument(
+        "--debug", action="store_true", help="""Debug mode: let Python exceptions come through""")
+    parser.add_argument(
+        "--no-cert-check", action="store_true",
+        help="""Disables the checking of the servers ssl certificate""")
 
     parser.add_argument(
         "-t",

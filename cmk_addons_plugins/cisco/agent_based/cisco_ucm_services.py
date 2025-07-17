@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# Copyright (C) 2019 tribe29 GmbH - License: GNU General Public License v2
+# Copyright (C) 2019 Checkmk GmbH - License: GNU General Public License v2
 # This file is part of Checkmk (https://checkmk.com). It is subject to the terms and
 # conditions defined in the file COPYING, which is part of this source code package.
+import re
+from collections.abc import Generator, Mapping, Sequence
+from typing import Any, NamedTuple
 
-from typing import Any, Dict, Generator, List, Mapping, NamedTuple, Optional
-from .agent_based_api.v1.type_defs import CheckResult, StringTable, DiscoveryResult
-from .agent_based_api.v1 import regex, register, Result, Service, State
+from cmk.agent_based.v2 import (
+    AgentSection,
+    CheckPlugin,
+    CheckResult,
+    DiscoveryResult,
+    Result,
+    RuleSetType,
+    Service,
+    State,
+    StringTable,
+)
 
 
-CISCO_UCM_SERVICES_DISCOVERY_DEFAULT_PARAMETERS: Dict[str, Any] = {
+
+CISCO_UCM_SERVICES_DISCOVERY_DEFAULT_PARAMETERS: dict[str, Any] = {
     "state": "Started",
 }
 
@@ -29,7 +40,7 @@ class CUCMService(NamedTuple):
     reason_str: str
 
 
-Section = List[CUCMService]
+Section = list[CUCMService]
 
 
 def parse_cisco_ucm_services(string_table: StringTable) -> Section:
@@ -38,13 +49,15 @@ def parse_cisco_ucm_services(string_table: StringTable) -> Section:
         for name, state, reason_code, reason_str in string_table
     ]
 
-register.agent_section(
-    name = "cisco_ucm_services",
-    parse_function = parse_cisco_ucm_services,
+agent_section_cisco_ucm_services = AgentSection(
+    name="cisco_ucm_services",
+    parse_function=parse_cisco_ucm_services,
 )
 
 
-def discovery_cisco_ucm_services(params: List[Dict[str, Any]], section: Section) -> DiscoveryResult:
+def discovery_cisco_ucm_services(
+        params: list[dict[str, Any]], section: Section
+) -> DiscoveryResult:
     # Handle single entries (type str)
     def add_matching_services(service: CUCMService, entry):
         # New wato rule handling
@@ -54,7 +67,7 @@ def discovery_cisco_ucm_services(params: List[Dict[str, Any]], section: Section)
             if not svc.startswith("~") and svc != service.name:
                 return
 
-            r = regex(svc[1:])
+            r = re.compile(svc[1:])
             if not r.match(service.name):
                 return
 
@@ -128,7 +141,7 @@ def check_cisco_ucm_services(
 def cluster_check_cisco_ucm_services(
     item: str,
     params: Mapping[str, Any],
-    section: Mapping[str, Optional[Section]],
+    section: Mapping[str, Section | None],
 ) -> CheckResult:
     # A service may appear more than once (due to clusters).
     # First make a list of all matching entries with their
@@ -145,7 +158,7 @@ def cluster_check_cisco_ucm_services(
         yield Result(state=State(params.get("else", 2)), summary="service not found")
         return
 
-    # We take the best found state (neccessary for clusters)
+    # We take the best found state (necessary for clusters)
     best_state = State.best(*(result.state for _node, result in found))
     best_running_on, best_result = [(n, r) for n, r in found if r.state == best_state][-1]
 
@@ -154,14 +167,14 @@ def cluster_check_cisco_ucm_services(
         yield Result(state=best_state, summary="Running on: %s" % best_running_on)
 
 
-register.check_plugin(
+check_plugin_services = CheckPlugin(
     name="cisco_ucm_services",
     service_name="Service %s",
-    discovery_ruleset_type=register.RuleSetType.ALL,
+    discovery_ruleset_type=RuleSetType.ALL,
     discovery_ruleset_name="inventory_cisco_ucm_services_rules",
     discovery_function=discovery_cisco_ucm_services,
     discovery_default_parameters=CISCO_UCM_SERVICES_DISCOVERY_DEFAULT_PARAMETERS,
-    check_ruleset_name="cisco_ucm_services",
+    check_ruleset_name="cisco_ucm",
     check_default_parameters=CISCO_UCM_SERVICES_CHECK_DEFAULT_PARAMETERS,
     check_function=check_cisco_ucm_services,
     cluster_check_function=cluster_check_cisco_ucm_services,
@@ -197,14 +210,14 @@ def check_cisco_ucm_services_summary(params: Mapping[str, Any], section: Section
     yield Result(
         state=State(params.get("state_if_stopped", 0)) if stoplist else State.OK,
         summary=f"Stopped services: {len(stoplist)}",
-        details=("Stopped services: %s" % ', '.join(stoplist)) if stoplist else None,
+        details=("Stopped services: %s" % ", ".join(stoplist)) if stoplist else None,
     )
 
     if num_blacklist:
         yield Result(state=State.OK, notice=f"Stopped but ignored: {num_blacklist}")
 
 
-register.check_plugin(
+check_plugin_cisco_ucm_services_summary = CheckPlugin(
     name="cisco_ucm_services_summary",
     sections=["cisco_ucm_services"],
     service_name="Service Summary",
